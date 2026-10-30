@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A reproducible audit of shared brain-state occupancy and cognitive performance in public Menon Lab data.">
+  <title>Exploratory Analyses Inspired by the Menon Lab</title>
+  <link rel="stylesheet" href="styles.css?v=1">
+</head>
+<body>
+  <main class="page">
+    <h1>Exploratory Analyses Inspired by the Menon Lab</h1>
+    <div class="byline">
+      Cathy Liu · Computational biology · <a href="mailto:cathyliu014@gmail.com">cathyliu014@gmail.com</a><br>
+      Prepared for the Menon Lab, Stanford University<br>
+      Personal exploratory project, October 2026
+    </div>
+
+    <nav class="section-nav" aria-label="Demo sections">
+      <a href="#motivation">Motivation</a>
+      <a href="#a1">State &amp; performance</a>
+      <a href="#a2">Across tasks</a>
+      <a href="#relevance">Relevance</a>
+    </nav>
+
+    <p>The Menon Lab studies how changing brain-network states support cognition. Its 2024 multi-demand study links time spent in a shared state to performance across different tasks. A useful next question is: how much individual-level information does that association actually carry?</p>
+    <p>I built a small audit of the published paired data: compare the original association with a leave-one-out linear estimate, inspect influential observations, and test whether the result depends on the task or brain-region definition.</p>
+
+    <hr id="motivation">
+    <section aria-labelledby="how-heading">
+      <h2 id="how-heading">How it works</h2>
+      <p>Each point is one exported brain–behavior pair from <a href="https://doi.org/10.1038/s41467-024-46511-5">Cai, Taghia &amp; Menon (2024)</a>. Occupancy is the fraction of time assigned to the shared brain state. For each held-out observation, a line is fitted to all remaining pairs and compared with their mean performance.</p>
+      <p>The authors already evaluated multivariate CCA with leave-one-out prediction. This complementary audit asks a narrower, single-feature question and adds a mean baseline and observation-level diagnostics. The original neural features remain fixed: this is not independent validation.</p>
+    </section>
+
+    <hr id="a1">
+    <section aria-labelledby="analysis-one-heading">
+      <h2 id="analysis-one-heading">Analysis 1 — From an association to an estimate</h2>
+      <div class="experiment">
+        <div class="exp-label">Method</div>
+        <div class="exp-title">Does occupancy help beyond a training-set average?</div>
+        <p>Start with the stop-signal task. Switch views to see what happens when each observation is left out of the regression. Try the alternate ROI definition to check sensitivity to how the network is measured.</p>
+      </div>
+
+      <div class="panel">
+        <div class="controls">
+          <label for="task">Task<select id="task"></select></label>
+          <label for="roi" id="roi-label">ROI definition<select id="roi"><option value="sst">Original</option><option value="sst_neurosynth">NeuroSynth alternative</option></select></label>
+          <label for="view">View<select id="view"><option value="association">Observed association</option><option value="prediction">Leave-one-out estimates</option></select></label>
+        </div>
+        <p class="chart-note" id="plot-note"></p>
+        <svg id="hero-viz" class="viz" viewBox="0 0 600 340" role="group" aria-label="Brain state and performance plot"></svg>
+        <label class="record-label" for="record">Inspect source row<select id="record"></select></label>
+        <div class="readout" id="readout" aria-live="polite"></div>
+        <figcaption id="caption"></figcaption>
+        <p class="chart-note">Only the linear readout is held out. Original state estimation, filtering and feature selection are not repeated within folds.</p>
+        <button class="text-button" id="download" type="button">Download this analysis as CSV</button>
+      </div>
+
+      <div class="metric-row">
+        <div class="metric"><span class="metric-val" id="metric-one">—</span><span class="metric-desc">exported pairs</span></div>
+        <div class="metric"><span class="metric-val" id="metric-two">—</span><span class="metric-desc">Pearson correlation</span></div>
+        <div class="metric"><span class="metric-val" id="metric-three">—</span><span class="metric-desc" id="metric-three-label">RMSE reduction vs. mean</span></div>
+      </div>
+      <p id="interpretation"></p>
+      <p class="value-note"><strong>What this lets the lab do:</strong> separate a visible cohort association from the smaller gain available to a simple held-out readout, and locate observations that change the conclusion.</p>
+      <p class="value-note"><strong>Where Cathy adds value:</strong> a transparent, reusable analysis-and-QC workflow that connects neural-state questions to testable predictions.</p>
+    </section>
+
+    <hr id="a2">
+    <section aria-labelledby="analysis-two-heading">
+      <h2 id="analysis-two-heading">Analysis 2 — Which signals deserve a fresh-cohort test?</h2>
+      <div class="experiment">
+        <div class="exp-label">Result</div>
+        <div class="exp-title">Compare improvement, not incompatible outcome units</div>
+      </div>
+      <div class="panel">
+        <label class="record-label" for="loss">Error measure<select id="loss"><option value="rmse">RMSE · more sensitive to large errors</option><option value="mae">MAE · typical absolute error</option></select></label>
+        <p class="chart-note">Positive = lower error than the training-only mean. Zero = no gain. Click a task to inspect its observations above.</p>
+        <svg id="comparison-viz" class="viz" viewBox="0 0 600 350" role="img" aria-label="Error improvement across seven task datasets"></svg>
+        <div class="comparison" id="comparison"></div>
+        <div class="readout" id="comparison-readout" aria-live="polite"></div>
+      </div>
+      <p class="value-note"><strong>What this lets the lab do:</strong> identify readouts whose apparent promise changes with the error criterion before choosing a validation endpoint. These small, post-publication differences are not a statistically established task ranking.</p>
+      <p class="value-note"><strong>Where Cathy adds value:</strong> one consistent benchmark across seven published task/session datasets, with explicit baseline, units, coverage and sensitivity checks.</p>
+      <p>The four DMCC tasks reuse one cohort, and the two HCP sessions reuse another. They are not seven independent replications. No observations are pooled, and source-row numbers are never assumed to identify the same person across sheets.</p>
+    </section>
+
+    <hr id="relevance">
+    <section aria-labelledby="relevance-heading">
+      <h2 id="relevance-heading">Why this matters for the lab</h2>
+      <p>A network state can explain differences across a cohort without being a precise personal predictor. This audit offers a practical way to decide what needs checking before carrying a shared-state readout into a new cognitive dataset. This is an inferred research opportunity, not a claim about an internal lab bottleneck.</p>
+      <p>A sensible next test would fix the task and outcome in advance, retain participant/run IDs and motion covariates, and learn both the state model and readout on training data only. An untouched cohort could then test whether occupancy adds useful information beyond demographic, behavioral and motion baselines.</p>
+
+      <h2>What I would bring</h2>
+      <p>My computational research on epilepsy and neurostimulation using The Virtual Brain, alongside practical laboratory experience, has made me interested in how neural states can be measured and used. I would like to contribute careful data checks, reproducible analyses and clear interpretation while developing direct neuroimaging experience. This assistant-assisted project demonstrates an analytical approach; it is not evidence that I have independently run an fMRI preprocessing or BSDS pipeline.</p>
+
+      <h2>Methods note</h2>
+      <p class="methods-note">Inputs: the paper’s CC BY 4.0 Source Data workbook, seven prespecified paired sheets and one stop-signal ROI sensitivity sheet. Values are preserved; occupancy is displayed as a percentage. Performance remains in source units because some published transformations cannot be reconstructed unambiguously. No missing values are imputed and no untested observations are manufactured.</p>
+      <details class="methods-note"><summary>Coverage, interpretation and reproducibility</summary>
+        <p>Exported pairs / reported cohort size: AxCPT 50/50, CuedTS 49/50, Sternberg 50/50, Stroop 48/50, SST 44/45, relational session 1 90/90 and session 2 87/90. Supplementary Methods section H reports a ≥3-SD exclusion rule for univariate analyses. This audit retains every exported pair; it does not reconstruct the exact exclusion mask or apply more filtering. Stable participant IDs are not supplied in these sheets. The alternate SST sheet has 44 matching behavioral values in the same order; this numerical match is not an independently verified identity linkage.</p>
+        <p>OLS includes an intercept. Every held-out prediction and mean baseline use only the other rows. RMSE and MAE improvements are 100 × (1 − model error / baseline error). Leave-one-row-out correlation ranges measure influence, not confidence intervals. This is reuse of already fitted, filtered and selected published features, not raw-MRI reproduction, external validation, a clinical predictor or a causal test.</p>
+        <p>Code/data repository inspected and used: <a href="https://github.com/scsnl/Cai_Multiple_Demand_System_2023/tree/cfe1931b2ac317c992642a0011eedac33cad2534">SCSNL release, pinned commit cfe1931</a>. Source data: <a href="https://www.ebi.ac.uk/europepmc/webservices/rest/PMC10928152/supplementaryFiles">article supplement</a>; archived repository data: <a href="https://zenodo.org/records/10702914">Zenodo 10702914</a>. See the reproducible analysis for the exact adapted upstream check and hashes; this does not reproduce the full BSDS/CCA workflow.</p>
+      </details>
+      <p class="methods-note"><a href="https://github.com/liuzhitong330/menon-lab-demo">Code, inputs &amp; reproducibility</a> · <a href="WALKTHROUGH.md">Plain-language walkthrough</a> · <a href="analysis.json">Analysis results</a></p>
+    </section>
+
+    <footer>
+      Cathy Liu · <a href="mailto:cathyliu014@gmail.com">cathyliu014@gmail.com</a> · <a href="tel:+14152163799">415-216-3799</a><br>
+      Epilepsy neurostimulation project, <a href="https://arxiv.org/abs/2606.04339">arXiv:2606.04339</a>
+    </footer>
+  </main>
+
+  <script src="data.js?v=1"></script>
+  <script src="app.js?v=1"></script>
+</body>
+</html>
